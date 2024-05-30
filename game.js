@@ -1,7 +1,9 @@
 let score = 0;
 let survivalTime = 0;
 let gameRunning = false;
-let highScores = [];
+let highScores = getHighScores();
+let bulletInterval;
+let enemyInterval;
 
 function update() {
     if (!gameRunning) return;
@@ -17,15 +19,22 @@ function update() {
             enemy.y += 2;
         } else if (enemy.type === 2) {
             enemy.y += 1.5;
-            if (Math.random() < 0.01) {
-                enemyBullets.push({ x: enemy.x, y: enemy.y });
+            if (Math.random() < 0.005) {
+                enemyBullets.push({ x: enemy.x, y: enemy.y, dx: 0, dy: 3 });
             }
         } else if (enemy.type === 3) {
             if (enemy.y < 50) {
                 enemy.y += 1;
             } else {
-                if (Math.random() < 0.02) {
-                    enemyBullets.push({ x: enemy.x, y: enemy.y });
+                if (Math.random() < 0.01) {
+                    const angle = Math.atan2(ship.y - enemy.y, ship.x - enemy.x);
+                    const speed = 3;
+                    enemyBullets.push({
+                        x: enemy.x,
+                        y: enemy.y,
+                        dx: speed * Math.cos(angle),
+                        dy: speed * Math.sin(angle),
+                    });
                 }
             }
         }
@@ -35,8 +44,11 @@ function update() {
         }
     });
 
-    enemyBullets.forEach(bullet => bullet.y += 3);
-    enemyBullets = enemyBullets.filter(bullet => bullet.y < canvas.height);
+    enemyBullets.forEach(bullet => {
+        bullet.x += bullet.dx;
+        bullet.y += bullet.dy;
+    });
+    enemyBullets = enemyBullets.filter(bullet => bullet.y < canvas.height && bullet.y > 0 && bullet.x > 0 && bullet.x < canvas.width);
 
     bullets.forEach((bullet, bulletIndex) => {
         enemies.forEach((enemy, enemyIndex) => {
@@ -77,9 +89,13 @@ function update() {
 
 function gameOver() {
     gameRunning = false;
+    clearInterval(bulletInterval);
+    clearInterval(enemyInterval);
     let initials = prompt('Game Over! Enter your initials:');
     highScores.push({ initials, score });
     highScores.sort((a, b) => b.score - a.score);
+    highScores = highScores.slice(0, 10); // Keep only top 10 scores
+    saveHighScores(highScores);
     alert(`High Scores:\n${highScores.map(s => `${s.initials}: ${s.score}`).join('\n')}`);
     resetGame();
 }
@@ -98,6 +114,24 @@ function resetGame() {
     enemyBullets = [];
     score = 0;
     survivalTime = 0;
+    startIntervals();
+}
+
+function startIntervals() {
+    bulletInterval = setInterval(() => {
+        bullets.push({ x: ship.x, y: ship.y });
+    }, 200);
+
+    enemyInterval = setInterval(() => {
+        let enemyType = Math.ceil(Math.random() * 3);
+        enemies.push({ x: Math.random() * canvas.width, y: -50, type: enemyType });
+    }, 1000);
+}
+
+function startGame() {
+    drawShip();
+    drawScore();
+    startIntervals();
 }
 
 canvas.addEventListener('mousemove', e => {
@@ -118,19 +152,16 @@ canvas.addEventListener('click', () => {
     if (!gameRunning) {
         gameRunning = true;
         update();
-        setInterval(() => {
-            bullets.push({ x: ship.x, y: ship.y });
-        }, 200);
-        setInterval(() => {
-            let enemyType = Math.ceil(Math.random() * 3);
-            enemies.push({ x: Math.random() * canvas.width, y: -50, type: enemyType });
-        }, 1000);
     }
 });
 
-function startGame() {
-    drawShip();
-    drawScore();
+function getHighScores() {
+    let cookieValue = document.cookie.replace(/(?:(?:^|.*;\s*)highScores\s*\=\s*([^;]*).*$)|^.*$/, "$1");
+    return cookieValue ? JSON.parse(cookieValue) : [];
+}
+
+function saveHighScores(highScores) {
+    document.cookie = `highScores=${JSON.stringify(highScores)};path=/;max-age=${60 * 60 * 24 * 365}`;
 }
 
 startGame();
