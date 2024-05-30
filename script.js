@@ -12,7 +12,7 @@ const assets = {
 };
 
 assets.title.src = 'assets/title.png';
-assets.spaceship.src = 'assets/spaceship.png';
+assets.spaceship.src = 'assets/PlayerShip.png'; // Update the spaceship source
 assets.enemy.src = 'assets/enemy.png';
 assets.background.src = 'assets/background.png';
 
