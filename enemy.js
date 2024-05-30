@@ -2,6 +2,7 @@ let enemies = [];
 
 function drawEnemies() {
     enemies.forEach(enemy => {
-        ctx.drawImage(assets.enemy, enemy.x - 25, enemy.y - 25, 50, 50);
+        let image = assets[`enemy${enemy.type}`];
+        ctx.drawImage(image, enemy.x - 25, enemy.y - 25, 50, 50);
     });
 }
