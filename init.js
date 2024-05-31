@@ -1,13 +1,5 @@
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
-
-
-const { NetworkClient, RoomOptions } = require('@photonengine/fusion');
-
-const client = new NetworkClient();
+// init.js
+const client = new Photon.Fusion.NetworkClient();
 
 // Replace with your Photon App ID
 const APP_ID = 'your-app-id';
@@ -17,7 +9,7 @@ client.connect(APP_ID, APP_VERSION);
 
 client.onConnected = () => {
     console.log('Connected to Photon Fusion');
-    const roomOptions = new RoomOptions();
+    const roomOptions = new Photon.Fusion.RoomOptions();
     roomOptions.isVisible = true;
     client.joinOrCreateRoom('Galamaster2', roomOptions);
 };
