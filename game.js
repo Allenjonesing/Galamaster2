@@ -12,7 +12,7 @@ let localPlayer = {
     height: 50,
     dx: 0,
     dy: 0,
-    id: client.myActor() ? client.myActor().actorNr : null
+    id: client.myActor().actorNr
 };
 
 let remotePlayers = {};
@@ -131,7 +131,7 @@ function resetGame() {
         height: 50,
         dx: 0,
         dy: 0,
-        id: client.myActor() ? client.myActor().actorNr : null
+        id: client.myActor().actorNr
     };
     bullets = [];
     enemies = [];

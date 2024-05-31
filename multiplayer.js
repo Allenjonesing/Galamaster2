@@ -1,14 +1,13 @@
 const PHOTON_APP_ID = 'your-photon-app-id';
 const PHOTON_APP_VERSION = '1.0';
 
-// Create a Photon client instance
 const client = new Photon.LoadBalancing.LoadBalancingClient(Photon.ConnectionProtocol.Wss, PHOTON_APP_ID, PHOTON_APP_VERSION);
 
 // Connect to the Photon server
 client.connectToRegionMaster('us'); // Use your preferred region
 
 client.onStateChange = (state) => {
-    console.log(`Client state: ${client.StateToName(state)}`);
+    console.log(`Client state: ${state}`);
 };
 
 client.onEvent = (code, content, actorNr) => {
@@ -42,3 +41,4 @@ client.onConnectedToMaster = () => {
 };
 
 client.connectToRegionMaster('us'); // Use your preferred region
+window.client = new Photon.LoadBalancing.LoadBalancingClient(Photon.ConnectionProtocol.Wss, PHOTON_APP_ID, PHOTON_APP_VERSION);
