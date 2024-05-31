@@ -1,15 +1,20 @@
-let score = 0;
-let survivalTime = 0;
-let gameRunning = false;
-let highScores = getHighScores();
-let bulletInterval;
-let enemyInterval;
+let localPlayer = {
+    x: canvas.width / 2,
+    y: canvas.height - 100,
+    width: 50,
+    height: 50,
+    dx: 0,
+    dy: 0,
+    id: client.myActor().actorNr
+};
+
+let remotePlayers = {};
 
 function update() {
     if (!gameRunning) return;
 
-    ship.x += ship.dx;
-    ship.y += ship.dy;
+    localPlayer.x += localPlayer.dx;
+    localPlayer.y += localPlayer.dy;
 
     bullets.forEach(bullet => bullet.y -= 5);
     bullets = bullets.filter(bullet => bullet.y > 0);
@@ -27,7 +32,7 @@ function update() {
                 enemy.y += 1;
             } else {
                 if (Math.random() < 0.01) {
-                    const angle = Math.atan2(ship.y - enemy.y, ship.x - enemy.x);
+                    const angle = Math.atan2(localPlayer.y - enemy.y, localPlayer.x - enemy.x);
                     const speed = 3;
                     enemyBullets.push({
                         x: enemy.x,
@@ -62,13 +67,13 @@ function update() {
     });
 
     enemies.forEach(enemy => {
-        if (ship.x > enemy.x - 25 && ship.x < enemy.x + 25 && ship.y > enemy.y - 25 && ship.y < enemy.y + 25) {
+        if (localPlayer.x > enemy.x - 25 && localPlayer.x < enemy.x + 25 && localPlayer.y > enemy.y - 25 && localPlayer.y < enemy.y + 25) {
             gameOver();
         }
     });
 
     enemyBullets.forEach(bullet => {
-        if (bullet.x > ship.x - 25 && bullet.x < ship.x + 25 && bullet.y > ship.y - 25 && bullet.y < ship.y + 25) {
+        if (bullet.x > localPlayer.x - 25 && bullet.x < localPlayer.x + 25 && bullet.y > localPlayer.y - 25 && bullet.y < localPlayer.y + 25) {
             gameOver();
         }
     });
@@ -78,6 +83,7 @@ function update() {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawShip();
+    drawRemotePlayers();
     drawBullets();
     drawEnemyBullets();
     drawEnemies();
@@ -85,6 +91,16 @@ function update() {
     drawScore();
 
     requestAnimationFrame(update);
+}
+
+function drawShip() {
+    ctx.drawImage(assets.spaceship, localPlayer.x - localPlayer.width / 2, localPlayer.y - localPlayer.height / 2, localPlayer.width, localPlayer.height);
+}
+
+function drawRemotePlayers() {
+    Object.values(remotePlayers).forEach(player => {
+        ctx.drawImage(assets.spaceship, player.x - player.width / 2, player.y - player.height / 2, player.width, player.height);
+    });
 }
 
 function gameOver() {
@@ -101,26 +117,27 @@ function gameOver() {
 }
 
 function resetGame() {
-    ship = {
+    localPlayer = {
         x: canvas.width / 2,
         y: canvas.height - 100,
         width: 50,
         height: 50,
         dx: 0,
         dy: 0,
+        id: client.myActor().actorNr
     };
     bullets = [];
     enemies = [];
     enemyBullets = [];
     score = 0;
     survivalTime = 0;
+    remotePlayers = {};
     startIntervals();
 }
 
 function startIntervals() {
     bulletInterval = setInterval(() => {
-        bullets.push({ x: ship.x, y: ship.y });
-        client.raiseEvent(3, { x: ship.x, y: ship.y }); // Send player position
+        bullets.push({ x: localPlayer.x, y: localPlayer.y });
     }, 200);
 
     enemyInterval = setInterval(() => {
@@ -133,28 +150,29 @@ function startGame() {
     drawShip();
     drawScore();
     startIntervals();
+    gameRunning = true;
+    update();
 }
 
 canvas.addEventListener('mousemove', e => {
     if (gameRunning) {
-        ship.x = e.clientX;
-        ship.y = e.clientY;
-        client.raiseEvent(3, { x: ship.x, y: ship.y }); // Send player position
+        localPlayer.x = e.clientX;
+        localPlayer.y = e.clientY;
+        client.raiseEvent(1, { x: localPlayer.x, y: localPlayer.y });
     }
 });
 
 canvas.addEventListener('touchmove', e => {
     if (gameRunning) {
-        ship.x = e.touches[0].clientX;
-        ship.y = e.touches[0].clientY;
-        client.raiseEvent(3, { x: ship.x, y: ship.y }); // Send player position
+        localPlayer.x = e.touches[0].clientX;
+        localPlayer.y = e.touches[0].clientY;
+        client.raiseEvent(1, { x: localPlayer.x, y: localPlayer.y });
     }
 });
 
 canvas.addEventListener('click', () => {
     if (!gameRunning) {
-        gameRunning = true;
-        update();
+        startGame();
     }
 });
 
@@ -167,9 +185,35 @@ function saveHighScores(highScores) {
     document.cookie = `highScores=${JSON.stringify(highScores)};path=/;max-age=${60 * 60 * 24 * 365}`;
 }
 
-function updatePlayerPosition(actorNr, position) {
-    // Update other players' positions based on received data
-    // This function should be implemented to handle multiplayer positions
-}
+client.onEvent = (code, content, actorNr) => {
+    if (code === 1) {
+        if (!remotePlayers[actorNr]) {
+            remotePlayers[actorNr] = { x: content.x, y: content.y, width: 50, height: 50 };
+        } else {
+            remotePlayers[actorNr].x = content.x;
+            remotePlayers[actorNr].y = content.y;
+        }
+    }
+};
+
+client.onJoinRoom = () => {
+    console.log('Joined room successfully');
+    resetGame();
+};
+
+client.onActorJoin = (actor) => {
+    console.log(`New player joined: ${actor.actorNr}`);
+};
+
+client.onActorLeave = (actor) => {
+    console.log(`Player left: ${actor.actorNr}`);
+    delete remotePlayers[actor.actorNr];
+};
+
+// Connect to Photon and join a random room
+client.connectToRegionMaster('us'); // Use your preferred region
+client.onConnectedToMaster = () => {
+    client.joinRandomRoom();
+};
 
 startGame();
