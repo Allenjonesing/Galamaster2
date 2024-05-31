@@ -4,18 +4,44 @@ let gameRunning = false;
 let highScores = getHighScores();
 let bulletInterval;
 let enemyInterval;
-
-let localPlayer = {
-    x: canvas.width / 2,
-    y: canvas.height - 100,
-    width: 50,
-    height: 50,
-    dx: 0,
-    dy: 0,
-    id: window.client.myActor().actorNr
-};
-
+let localPlayer;
 let remotePlayers = {};
+
+function initializeGame() {
+    localPlayer = {
+        x: canvas.width / 2,
+        y: canvas.height - 100,
+        width: 50,
+        height: 50,
+        dx: 0,
+        dy: 0,
+        id: window.client.myActor().actorNr
+    };
+
+    canvas.addEventListener('mousemove', e => {
+        if (gameRunning) {
+            localPlayer.x = e.clientX;
+            localPlayer.y = e.clientY;
+            window.client.raiseEvent(1, { x: localPlayer.x, y: localPlayer.y });
+        }
+    });
+
+    canvas.addEventListener('touchmove', e => {
+        if (gameRunning) {
+            localPlayer.x = e.touches[0].clientX;
+            localPlayer.y = e.touches[0].clientY;
+            window.client.raiseEvent(1, { x: localPlayer.x, y: localPlayer.y });
+        }
+    });
+
+    canvas.addEventListener('click', () => {
+        if (!gameRunning) {
+            startGame();
+        }
+    });
+
+    startGame();
+}
 
 function update() {
     if (!gameRunning) return;
@@ -160,28 +186,6 @@ function startGame() {
     gameRunning = true;
     update();
 }
-
-canvas.addEventListener('mousemove', e => {
-    if (gameRunning) {
-        localPlayer.x = e.clientX;
-        localPlayer.y = e.clientY;
-        window.client.raiseEvent(1, { x: localPlayer.x, y: localPlayer.y });
-    }
-});
-
-canvas.addEventListener('touchmove', e => {
-    if (gameRunning) {
-        localPlayer.x = e.touches[0].clientX;
-        localPlayer.y = e.touches[0].clientY;
-        window.client.raiseEvent(1, { x: localPlayer.x, y: localPlayer.y });
-    }
-});
-
-canvas.addEventListener('click', () => {
-    if (!gameRunning) {
-        startGame();
-    }
-});
 
 function getHighScores() {
     let cookieValue = document.cookie.replace(/(?:(?:^|.*;\s*)highScores\s*\=\s*([^;]*).*$)|^.*$/, "$1");

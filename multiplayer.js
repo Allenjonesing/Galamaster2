@@ -2,13 +2,18 @@ const PHOTON_APP_ID = 'fdd578f2-f3c3-4089-bcda-f34576e0b095'; // Replace with yo
 const PHOTON_APP_VERSION = '1.0';
 
 const client = new Photon.LoadBalancing.LoadBalancingClient(Photon.ConnectionProtocol.Wss, PHOTON_APP_ID, PHOTON_APP_VERSION);
-window.client = new Photon.LoadBalancing.LoadBalancingClient(Photon.ConnectionProtocol.Wss, PHOTON_APP_ID, PHOTON_APP_VERSION);
+
+let isClientConnected = false;
 
 // Connect to the Photon server
 client.connectToRegionMaster('us'); // Use your preferred region
 
 client.onStateChange = (state) => {
     console.log(`Client state: ${state}`);
+    if (state === Photon.LoadBalancing.LoadBalancingClient.State.JoinedLobby) {
+        isClientConnected = true;
+        initializeGame();
+    }
 };
 
 client.onEvent = (code, content, actorNr) => {
@@ -43,3 +48,4 @@ client.onConnectedToMaster = () => {
 
 client.connectToRegionMaster('us'); // Use your preferred region
 
+window.client = client;
