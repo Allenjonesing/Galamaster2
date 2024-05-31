@@ -12,7 +12,7 @@ let localPlayer = {
     height: 50,
     dx: 0,
     dy: 0,
-    id: client.myActor().actorNr
+    id: window.client.myActor().actorNr
 };
 
 let remotePlayers = {};
@@ -131,7 +131,7 @@ function resetGame() {
         height: 50,
         dx: 0,
         dy: 0,
-        id: client.myActor().actorNr
+        id: window.client.myActor().actorNr
     };
     bullets = [];
     enemies = [];
@@ -165,7 +165,7 @@ canvas.addEventListener('mousemove', e => {
     if (gameRunning) {
         localPlayer.x = e.clientX;
         localPlayer.y = e.clientY;
-        client.raiseEvent(1, { x: localPlayer.x, y: localPlayer.y });
+        window.client.raiseEvent(1, { x: localPlayer.x, y: localPlayer.y });
     }
 });
 
@@ -173,7 +173,7 @@ canvas.addEventListener('touchmove', e => {
     if (gameRunning) {
         localPlayer.x = e.touches[0].clientX;
         localPlayer.y = e.touches[0].clientY;
-        client.raiseEvent(1, { x: localPlayer.x, y: localPlayer.y });
+        window.client.raiseEvent(1, { x: localPlayer.x, y: localPlayer.y });
     }
 });
 
@@ -192,7 +192,7 @@ function saveHighScores(highScores) {
     document.cookie = `highScores=${JSON.stringify(highScores)};path=/;max-age=${60 * 60 * 24 * 365}`;
 }
 
-client.onEvent = (code, content, actorNr) => {
+window.client.onEvent = (code, content, actorNr) => {
     if (code === 1) {
         if (!remotePlayers[actorNr]) {
             remotePlayers[actorNr] = { x: content.x, y: content.y, width: 50, height: 50 };
@@ -203,24 +203,24 @@ client.onEvent = (code, content, actorNr) => {
     }
 };
 
-client.onJoinRoom = () => {
+window.client.onJoinRoom = () => {
     console.log('Joined room successfully');
     resetGame();
 };
 
-client.onActorJoin = (actor) => {
+window.client.onActorJoin = (actor) => {
     console.log(`New player joined: ${actor.actorNr}`);
 };
 
-client.onActorLeave = (actor) => {
+window.client.onActorLeave = (actor) => {
     console.log(`Player left: ${actor.actorNr}`);
     delete remotePlayers[actor.actorNr];
 };
 
 // Connect to Photon and join a random room
-client.connectToRegionMaster('us'); // Use your preferred region
-client.onConnectedToMaster = () => {
-    client.joinRandomRoom();
+window.client.connectToRegionMaster('us'); // Use your preferred region
+window.client.onConnectedToMaster = () => {
+    window.client.joinRandomRoom();
 };
 
 startGame();

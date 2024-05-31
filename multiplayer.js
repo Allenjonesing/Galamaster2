@@ -1,7 +1,8 @@
-const PHOTON_APP_ID = 'your-photon-app-id';
+const PHOTON_APP_ID = 'fdd578f2-f3c3-4089-bcda-f34576e0b095'; // Replace with your actual Photon Application ID
 const PHOTON_APP_VERSION = '1.0';
 
 const client = new Photon.LoadBalancing.LoadBalancingClient(Photon.ConnectionProtocol.Wss, PHOTON_APP_ID, PHOTON_APP_VERSION);
+window.client = new Photon.LoadBalancing.LoadBalancingClient(Photon.ConnectionProtocol.Wss, PHOTON_APP_ID, PHOTON_APP_VERSION);
 
 // Connect to the Photon server
 client.connectToRegionMaster('us'); // Use your preferred region
@@ -41,4 +42,4 @@ client.onConnectedToMaster = () => {
 };
 
 client.connectToRegionMaster('us'); // Use your preferred region
-window.client = new Photon.LoadBalancing.LoadBalancingClient(Photon.ConnectionProtocol.Wss, PHOTON_APP_ID, PHOTON_APP_VERSION);
+
