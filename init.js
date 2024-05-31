@@ -1,4 +1,5 @@
 // init.js
+
 const client = new Photon.Fusion.NetworkClient();
 
 // Replace with your Photon App ID
