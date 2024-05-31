@@ -5,15 +5,11 @@ canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
 
-// init.js
-
 const client = new Photon.LoadBalancing.LoadBalancingClient(
     Photon.ConnectionProtocol.Ws,
-    "fdd578f2-f3c3-4089-bcda-f34576e0b095",
+    "your-app-id", // Replace with your Photon App ID
     "1.0"
 );
-
-client.connectToRegionMaster("us"); // or eu
 
 client.onConnected = () => {
     console.log("Connected to Photon Realtime");
@@ -22,21 +18,30 @@ client.onConnected = () => {
 
 client.onJoinRoom = () => {
     console.log("Joined room");
-    // Additional setup when joining a room
+    startGame();
 };
 
 client.onEvent = (code, content, actorNr) => {
     console.log(`Received event: ${code} from ${actorNr}`);
-    // Handle game events (e.g., player movements, actions)
+    switch (code) {
+        case 1: // Example event code for keydown
+            handleKeydown(content.key);
+            break;
+        case 2: // Example event code for keyup
+            handleKeyup(content.key);
+            break;
+        case 3: // Example event code for player position update
+            updatePlayerPosition(actorNr, content);
+            break;
+    }
 };
 
 client.onStateChange = (state) => {
     console.log(`State changed to: ${state}`);
 };
 
-client.connectToRegionMaster("eu");
+client.connectToRegionMaster("us"); // Replace "us" with your preferred region
 
-// Listen for player actions and send events to the server
 document.addEventListener("keydown", (e) => {
     const event = { type: "keydown", key: e.key };
     client.raiseEvent(1, event); // 1 is an example event code

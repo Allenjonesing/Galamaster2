@@ -5,44 +5,6 @@ let highScores = getHighScores();
 let bulletInterval;
 let enemyInterval;
 
-const client = new Photon.LoadBalancing.LoadBalancingClient(
-    Photon.ConnectionProtocol.Ws,
-    "your-app-id", // Replace with your Photon App ID
-    "1.0"
-);
-
-client.onConnected = () => {
-    console.log("Connected to Photon Realtime");
-    client.joinRandomRoom();
-};
-
-client.onJoinRoom = () => {
-    console.log("Joined room");
-    startGame();
-};
-
-client.onEvent = (code, content, actorNr) => {
-    console.log(`Received event: ${code} from ${actorNr}`);
-    switch (code) {
-        case 1: // Example event code for keydown
-            handleKeydown(content.key);
-            break;
-        case 2: // Example event code for keyup
-            handleKeyup(content.key);
-            break;
-        case 3: // Example event code for player position update
-            updatePlayerPosition(actorNr, content);
-            break;
-        // Add more cases as needed for other events
-    }
-};
-
-client.onStateChange = (state) => {
-    console.log(`State changed to: ${state}`);
-};
-
-client.connectToRegionMaster("eu");
-
 function update() {
     if (!gameRunning) return;
 
