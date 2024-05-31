@@ -1,3 +1,10 @@
+let score = 0;
+let survivalTime = 0;
+let gameRunning = false;
+let highScores = getHighScores();
+let bulletInterval;
+let enemyInterval;
+
 let localPlayer = {
     x: canvas.width / 2,
     y: canvas.height - 100,
@@ -5,7 +12,7 @@ let localPlayer = {
     height: 50,
     dx: 0,
     dy: 0,
-    id: client.myActor().actorNr
+    id: client.myActor() ? client.myActor().actorNr : null
 };
 
 let remotePlayers = {};
@@ -124,7 +131,7 @@ function resetGame() {
         height: 50,
         dx: 0,
         dy: 0,
-        id: client.myActor().actorNr
+        id: client.myActor() ? client.myActor().actorNr : null
     };
     bullets = [];
     enemies = [];

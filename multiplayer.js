@@ -1,5 +1,4 @@
-// Replace with your Photon App ID
-const PHOTON_APP_ID = 'fdd578f2-f3c3-4089-bcda-f34576e0b095';
+const PHOTON_APP_ID = 'your-photon-app-id';
 const PHOTON_APP_VERSION = '1.0';
 
 // Create a Photon client instance
@@ -13,11 +12,19 @@ client.onStateChange = (state) => {
 };
 
 client.onEvent = (code, content, actorNr) => {
-    console.log(`Event received: ${code}, ${content}, from actor: ${actorNr}`);
+    if (code === 1) {
+        if (!remotePlayers[actorNr]) {
+            remotePlayers[actorNr] = { x: content.x, y: content.y, width: 50, height: 50 };
+        } else {
+            remotePlayers[actorNr].x = content.x;
+            remotePlayers[actorNr].y = content.y;
+        }
+    }
 };
 
 client.onJoinRoom = () => {
     console.log('Joined room successfully');
+    resetGame();
 };
 
 client.onActorJoin = (actor) => {
@@ -26,4 +33,12 @@ client.onActorJoin = (actor) => {
 
 client.onActorLeave = (actor) => {
     console.log(`Player left: ${actor.actorNr}`);
+    delete remotePlayers[actor.actorNr];
 };
+
+// Connect to Photon and join a random room
+client.onConnectedToMaster = () => {
+    client.joinRandomRoom();
+};
+
+client.connectToRegionMaster('us'); // Use your preferred region
