@@ -226,5 +226,3 @@ window.client.connectToRegionMaster('us'); // Use your preferred region
 window.client.onConnectedToMaster = () => {
     window.client.joinRandomRoom();
 };
-
-startGame();
