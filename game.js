@@ -5,6 +5,44 @@ let highScores = getHighScores();
 let bulletInterval;
 let enemyInterval;
 
+const client = new Photon.LoadBalancing.LoadBalancingClient(
+    Photon.ConnectionProtocol.Ws,
+    "your-app-id", // Replace with your Photon App ID
+    "1.0"
+);
+
+client.onConnected = () => {
+    console.log("Connected to Photon Realtime");
+    client.joinRandomRoom();
+};
+
+client.onJoinRoom = () => {
+    console.log("Joined room");
+    startGame();
+};
+
+client.onEvent = (code, content, actorNr) => {
+    console.log(`Received event: ${code} from ${actorNr}`);
+    switch (code) {
+        case 1: // Example event code for keydown
+            handleKeydown(content.key);
+            break;
+        case 2: // Example event code for keyup
+            handleKeyup(content.key);
+            break;
+        case 3: // Example event code for player position update
+            updatePlayerPosition(actorNr, content);
+            break;
+        // Add more cases as needed for other events
+    }
+};
+
+client.onStateChange = (state) => {
+    console.log(`State changed to: ${state}`);
+};
+
+client.connectToRegionMaster("eu");
+
 function update() {
     if (!gameRunning) return;
 
@@ -120,6 +158,7 @@ function resetGame() {
 function startIntervals() {
     bulletInterval = setInterval(() => {
         bullets.push({ x: ship.x, y: ship.y });
+        client.raiseEvent(3, { x: ship.x, y: ship.y }); // Send player position
     }, 200);
 
     enemyInterval = setInterval(() => {
@@ -138,6 +177,7 @@ canvas.addEventListener('mousemove', e => {
     if (gameRunning) {
         ship.x = e.clientX;
         ship.y = e.clientY;
+        client.raiseEvent(3, { x: ship.x, y: ship.y }); // Send player position
     }
 });
 
@@ -145,6 +185,7 @@ canvas.addEventListener('touchmove', e => {
     if (gameRunning) {
         ship.x = e.touches[0].clientX;
         ship.y = e.touches[0].clientY;
+        client.raiseEvent(3, { x: ship.x, y: ship.y }); // Send player position
     }
 });
 
@@ -162,6 +203,11 @@ function getHighScores() {
 
 function saveHighScores(highScores) {
     document.cookie = `highScores=${JSON.stringify(highScores)};path=/;max-age=${60 * 60 * 24 * 365}`;
+}
+
+function updatePlayerPosition(actorNr, position) {
+    // Update other players' positions based on received data
+    // This function should be implemented to handle multiplayer positions
 }
 
 startGame();
