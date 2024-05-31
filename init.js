@@ -9,9 +9,11 @@ canvas.height = window.innerHeight;
 
 const client = new Photon.LoadBalancing.LoadBalancingClient(
     Photon.ConnectionProtocol.Ws,
-    "your-app-id",
+    "fdd578f2-f3c3-4089-bcda-f34576e0b095",
     "1.0"
 );
+
+client.connectToRegionMaster("us"); // or eu
 
 client.onConnected = () => {
     console.log("Connected to Photon Realtime");
